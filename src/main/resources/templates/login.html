@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GOl8 Arena - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-1: #040816;
+            --bg-2: #122954;
+            --cyan: #28f6ff;
+            --lime: #9dff00;
+            --panel: rgba(8, 18, 40, 0.78);
+            --text: #ecf4ff;
+            --muted: #b0c5ea;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            background:
+                radial-gradient(circle at 10% 14%, rgba(40, 246, 255, .16), transparent 32%),
+                radial-gradient(circle at 82% 18%, rgba(157, 255, 0, .13), transparent 26%),
+                linear-gradient(150deg, var(--bg-1), var(--bg-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .login-shell {
+            width: 100%;
+            max-width: 520px;
+            border: 1px solid rgba(40, 246, 255, .35);
+            border-radius: 22px;
+            background: var(--panel);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 0 40px rgba(40, 246, 255, .18), inset 0 0 30px rgba(40, 246, 255, .06);
+            overflow: hidden;
+        }
+
+        .login-head {
+            background: linear-gradient(120deg, rgba(40, 246, 255, .17), rgba(157, 255, 0, .13));
+            border-bottom: 1px solid rgba(176, 197, 234, .2);
+            padding: 1.3rem 1.5rem;
+        }
+
+        .login-kicker {
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            font-size: .76rem;
+            color: var(--cyan);
+            margin-bottom: .3rem;
+            font-weight: 700;
+        }
+
+        .login-title {
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            font-size: clamp(1.45rem, 4.5vw, 2rem);
+        }
+
+        .login-body {
+            padding: 1.5rem;
+        }
+
+        .form-floating > .form-control {
+            background: rgba(255, 255, 255, .95);
+            border: 0;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #2bffec, #1f88ff);
+            color: #031124;
+            font-weight: 700;
+            border: 0;
+        }
+
+        .btn-login:hover {
+            color: #031124;
+            filter: brightness(1.05);
+        }
+
+        .footer-note {
+            color: var(--muted);
+            font-size: .95rem;
+        }
+
+        .back-home {
+            color: var(--lime);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .back-home:hover {
+            color: #c6ff6a;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="login-shell">
+        <div class="login-head">
+            <div class="login-kicker">Player Access</div>
+            <h1 class="login-title">Accesso Arena</h1>
+        </div>
+        <div class="login-body">
+            <p class="mb-3 text-light">Effettua il login per entrare nella dashboard e iniziare la partita a tris.</p>
+
+            <div th:if="${param.error}" class="alert alert-danger">
+                Username o password errati.
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success">
+                Sei uscito correttamente.
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="form-floating mb-3">
+                    <input type="text" name="username" class="form-control" id="u" placeholder="Username" required>
+                    <label for="u">Username</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="password" name="password" class="form-control" id="p" placeholder="Password" required>
+                    <label for="p">Password</label>
+                </div>
+                <button class="w-100 btn btn-lg btn-login" type="submit">Entra e Gioca</button>
+            </form>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <span class="footer-note">&copy; 2026 - GOl8 Arena</span>
+                <a class="back-home" th:href="@{/}">Torna alla Home</a>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

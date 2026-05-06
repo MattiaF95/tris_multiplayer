@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GOl8 Arena - Dashboard Tris</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #030612;
+            --bg-mid: #11244a;
+            --text-main: #ecf4ff;
+            --text-muted: #b0c5ea;
+            --cyan: #28f6ff;
+            --lime: #9dff00;
+            --warn: #ff4f7a;
+            --panel: rgba(7, 15, 33, 0.82);
+            --cell: rgba(17, 33, 68, 0.7);
+            --cell-border: rgba(40, 246, 255, 0.38);
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            background:
+                radial-gradient(circle at 12% 16%, rgba(40, 246, 255, .17), transparent 30%),
+                radial-gradient(circle at 84% 10%, rgba(157, 255, 0, .15), transparent 26%),
+                radial-gradient(circle at 68% 76%, rgba(255, 79, 122, .11), transparent 32%),
+                linear-gradient(150deg, var(--bg-deep), var(--bg-mid));
+            overflow-x: hidden;
+        }
+
+        .dashboard-wrap {
+            width: min(1160px, 100%);
+            margin: 0 auto;
+            padding: 1rem 1rem 2rem;
+        }
+
+        .topbar {
+            background: var(--panel);
+            border: 1px solid rgba(176, 197, 234, .22);
+            border-radius: 16px;
+            padding: 1rem;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 28px rgba(40, 246, 255, .18);
+            margin-bottom: 1rem;
+        }
+
+        .brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.25rem, 3.4vw, 1.8rem);
+            margin: 0;
+            text-shadow: 0 0 18px rgba(40, 246, 255, .45);
+        }
+
+        .meta {
+            color: var(--text-muted);
+            font-size: .95rem;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(40, 246, 255, .25);
+            border-radius: 20px;
+            padding: 1.2rem;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 30px rgba(40, 246, 255, .15);
+            height: 100%;
+        }
+
+        .panel h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.15rem;
+            margin-bottom: .8rem;
+        }
+
+        .board-wrap {
+            display: grid;
+            gap: .65rem;
+            grid-template-columns: repeat(3, minmax(74px, 1fr));
+            max-width: 420px;
+            margin: .9rem auto .4rem;
+        }
+
+        .board-stage {
+            position: relative;
+            max-width: 420px;
+            margin: .9rem auto .4rem;
+        }
+
+        .board-stage .board-wrap {
+            margin: 0;
+        }
+
+        .cell {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            border: 1px solid var(--cell-border);
+            background: linear-gradient(145deg, var(--cell), rgba(15, 28, 57, .96));
+            box-shadow: inset 0 0 14px rgba(40, 246, 255, .12), 0 8px 18px rgba(0, 0, 0, .32);
+            transition: transform .17s ease, box-shadow .17s ease, border-color .17s ease;
+        }
+
+        .cell:hover {
+            transform: translateY(-3px) scale(1.02);
+            border-color: var(--lime);
+            box-shadow: inset 0 0 20px rgba(157, 255, 0, .13), 0 12px 26px rgba(0, 0, 0, .34);
+        }
+
+        .cell a {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.25rem, 3vw, 1.9rem);
+            font-weight: 700;
+            letter-spacing: .04em;
+        }
+
+        .cell-empty a {
+            color: transparent;
+        }
+
+        .cell span {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+            font-weight: 900;
+            text-shadow: 0 0 18px rgba(40, 246, 255, .35);
+        }
+
+        .mark-x {
+            color: var(--lime);
+        }
+
+        .mark-o {
+            color: #ff9c44;
+        }
+
+        .legend {
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .chip {
+            display: inline-block;
+            border-radius: 999px;
+            padding: .28rem .7rem;
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            margin-right: .35rem;
+            margin-bottom: .35rem;
+        }
+
+        .chip-cyan {
+            background: rgba(40, 246, 255, .15);
+            color: var(--cyan);
+            border: 1px solid rgba(40, 246, 255, .35);
+        }
+
+        .chip-lime {
+            background: rgba(157, 255, 0, .16);
+            color: #ccff7f;
+            border: 1px solid rgba(157, 255, 0, .4);
+        }
+
+        .chip-warn {
+            background: rgba(255, 79, 122, .16);
+            color: #ff93ad;
+            border: 1px solid rgba(255, 79, 122, .35);
+        }
+
+        .link-list a {
+            display: inline-block;
+            margin: .2rem .25rem .2rem 0;
+            color: var(--cyan);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .link-list a:hover {
+            color: var(--lime);
+            text-decoration: underline;
+        }
+
+        .btn-logout {
+            border: 0;
+            color: #031124;
+            background: linear-gradient(135deg, #2bffec, #1f88ff);
+            font-weight: 700;
+        }
+
+        .btn-player-info {
+            border: 1px solid rgba(157, 255, 0, .45);
+            color: var(--lime);
+            background: rgba(157, 255, 0, .08);
+            font-weight: 700;
+        }
+
+        .btn-player-info:hover {
+            color: #031124;
+            background: var(--lime);
+        }
+
+        .modal-gaming .modal-content {
+            background: rgba(7, 15, 33, .96);
+            border: 1px solid rgba(40, 246, 255, .35);
+            color: var(--text-main);
+            box-shadow: 0 0 34px rgba(40, 246, 255, .22);
+        }
+
+        .modal-gaming .modal-header {
+            border-bottom: 1px solid rgba(176, 197, 234, .2);
+        }
+
+        .modal-gaming .modal-footer {
+            border-top: 1px solid rgba(176, 197, 234, .2);
+        }
+
+        .player-line {
+            margin-bottom: .5rem;
+            color: var(--text-muted);
+        }
+
+        .player-line strong {
+            color: var(--text-main);
+        }
+
+        .stats-table {
+            color: var(--text-main);
+        }
+
+        .stats-table th,
+        .stats-table td {
+            background: rgba(0, 0, 0, .35);
+            border-color: rgba(176, 197, 234, .22);
+            vertical-align: middle;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .stats-table thead th {
+            background: rgba(0, 0, 0, .52);
+            color: #ffffff;
+        }
+
+        .board-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, .62);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+            z-index: 4;
+        }
+
+        .board-overlay-box {
+            border: 1px solid rgba(40, 246, 255, .45);
+            background: rgba(7, 15, 33, .96);
+            border-radius: 12px;
+            padding: .85rem .95rem;
+            width: 100%;
+            max-width: 280px;
+            box-shadow: 0 0 20px rgba(40, 246, 255, .25);
+        }
+
+        .board-overlay-box p {
+            color: #ffffff;
+            font-weight: 700;
+            margin-bottom: .7rem;
+        }
+
+        .lobby-table th,
+        .lobby-table td {
+            color: #ffffff;
+            border-color: rgba(176, 197, 234, .22);
+            vertical-align: middle;
+            background: rgba(0, 0, 0, .36);
+        }
+
+        .lobby-table thead th {
+            background: rgba(0, 0, 0, .56);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: .35rem;
+        }
+
+        .status-free {
+            background: #9dff00;
+            box-shadow: 0 0 10px rgba(157, 255, 0, .55);
+        }
+
+        .status-busy {
+            background: #ff9c44;
+            box-shadow: 0 0 10px rgba(255, 156, 68, .55);
+        }
+
+        .mark-empty {
+            position: absolute;
+            inset: 0;
+        }
+
+        .mini-title {
+            color: #ffffff;
+            font-size: .9rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-top: .8rem;
+            margin-bottom: .35rem;
+        }
+
+        .starter-alert {
+            background: rgba(157, 255, 0, .16);
+            border: 1px solid rgba(157, 255, 0, .55);
+            color: #ffffff;
+            border-radius: 10px;
+            padding: .5rem .75rem;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: .55rem;
+        }
+
+        .session-panel {
+            background: rgba(3, 10, 26, .96);
+            border: 1px solid rgba(255, 255, 255, .26);
+            box-shadow: 0 0 34px rgba(0, 0, 0, .45);
+        }
+
+        .session-panel h2,
+        .session-panel .mini-title,
+        .session-panel .chip,
+        .session-panel td,
+        .session-panel th {
+            color: #ffffff;
+        }
+
+        .session-panel .chip-cyan {
+            background: rgba(19, 160, 172, .38);
+            border-color: rgba(120, 240, 255, .7);
+        }
+
+        .session-panel .chip-lime {
+            background: rgba(115, 176, 0, .4);
+            border-color: rgba(196, 255, 107, .72);
+        }
+
+        .session-panel .chip-warn {
+            background: rgba(166, 58, 0, .42);
+            border-color: rgba(255, 196, 120, .7);
+        }
+
+        .session-panel .link-list a {
+            color: #ffffff;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .session-panel .link-list a:hover {
+            color: #9dff00;
+        }
+
+        @media (max-width: 767.98px) {
+            .dashboard-wrap {
+                padding-top: .8rem;
+            }
+
+            .topbar {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrap">
+        <header class="topbar d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+            <div>
+                <h1 class="brand">GOl8 Dashboard - Tris Arena</h1>
+                <div class="meta">Giocatore: <strong sec:authentication="name">Utente</strong> • Ruoli: <span sec:authentication="principal.authorities">Ruoli</span></div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-player-info" data-bs-toggle="modal" data-bs-target="#playerInfoModal">
+                    Info Giocatore
+                </button>
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button class="btn btn-logout" type="submit">Logout</button>
+                </form>
+            </div>
+        </header>
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-7">
+                <section class="panel">
+                    <h2>Partita Tris Multiplayer</h2>
+                    <div class="legend mb-1" id="gameMessage" th:text="${resultMessage}">Nessuna partita attiva.</div>
+                    <div class="legend mb-2" id="turnText" th:text="${turnText}">In attesa partita</div>
+                    <div class="starter-alert" id="starterAlert" th:if="${currentGameId != null and starter != null and starter != ''}">
+                        Inizia per primo: <span th:text="${starter}">playerX</span> (simbolo <span th:text="${starterSymbol}">X</span>)
+                    </div>
+                    <div class="legend mb-2" th:if="${currentGameId != null}">
+                        Sei: <strong th:text="${mySymbol}">X</strong> • Avversario: <strong th:text="${opponent}">-</strong>
+                    </div>
+
+                    <div class="board-stage">
+                        <div class="board-wrap" id="boardWrap">
+                            <div class="cell js-cell" th:each="cell, cellStat : ${board}" th:attr="data-idx=${cellStat.index}">
+                                <a th:if="${cell == '' and currentGameId != null and gameStatus == 'IN_PROGRESS'}" th:href="@{/click/{idx}(idx=${cellStat.index})}">.</a>
+                                <span class="mark-empty" th:if="${cell == '' and (currentGameId == null or gameStatus != 'IN_PROGRESS')}"></span>
+                                <span th:if="${cell != ''}"
+                                      th:text="${cell}"
+                                      th:classappend="${cell == 'X'} ? ' mark-x' : ' mark-o'">X</span>
+                            </div>
+                        </div>
+
+                        <div class="board-overlay" id="boardOverlay" th:if="${currentGameId != null and gameStatus != 'IN_PROGRESS'}">
+                            <div class="board-overlay-box">
+                                <p th:text="${resultMessage}">Partita terminata.</p>
+                                <a th:href="@{/game/reset}" class="btn btn-outline-light btn-sm">Nuova partita stessi giocatori</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-3" th:if="${currentGameId != null}">
+                        <a th:href="@{/game/leave}" class="btn btn-outline-light btn-sm">Esci dalla partita condivisa</a>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12 col-lg-5">
+                <section class="panel session-panel mb-3">
+                    <h2>Stato Sessione</h2>
+                    <span class="chip chip-cyan">Online</span>
+                    <span class="chip chip-lime" th:if="${currentGameId == null}">In Lobby</span>
+                    <span class="chip chip-warn" th:if="${currentGameId != null}">In Match</span>
+
+                    <div class="mt-3 table-responsive">
+                        <table class="table table-sm stats-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Partite</th>
+                                    <th>Vittorie</th>
+                                    <th>Sconfitte</th>
+                                    <th>Pareggi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td th:text="${scorePlayed}">0</td>
+                                    <td th:text="${scoreWins}">0</td>
+                                    <td th:text="${scoreLosses}">0</td>
+                                    <td th:text="${scoreDraws}">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mini-title">Utenti attivi in rete</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm lobby-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Utente</th>
+                                    <th>Stato</th>
+                                    <th>Azione</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activeUsersBody">
+                                <tr th:if="${#lists.isEmpty(activeUsers)}">
+                                    <td colspan="3">Nessun altro utente attivo.</td>
+                                </tr>
+                                <tr th:each="u : ${activeUsers}">
+                                    <td th:text="${u.username}">player</td>
+                                    <td>
+                                        <span class="status-dot" th:classappend="${u.inGame} ? ' status-busy' : ' status-free'"></span>
+                                        <span th:text="${u.inGame} ? 'In partita' : 'Libero'">Libero</span>
+                                    </td>
+                                    <td>
+                                        <a th:if="${!u.inGame and currentGameId == null}" class="btn btn-sm btn-outline-info" th:href="@{/lobby/invite/{sid}(sid=${u.sessionId})}">Invita</a>
+                                        <span th:if="${u.inGame or currentGameId != null}">-</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mini-title">Inviti ricevuti</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm lobby-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Da</th>
+                                    <th>Stato</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomingInvitesBody">
+                                <tr th:if="${#lists.isEmpty(incomingInvites)}">
+                                    <td colspan="3">Nessun invito.</td>
+                                </tr>
+                                <tr th:each="inv : ${incomingInvites}">
+                                    <td th:text="${inv.from}">user</td>
+                                    <td th:text="${inv.status}">PENDING</td>
+                                    <td>
+                                        <a th:if="${inv.status == 'PENDING' and currentGameId == null}" class="btn btn-sm btn-success" th:href="@{/lobby/invite/{id}/accept(id=${inv.inviteId})}">Accetta</a>
+                                        <a th:if="${inv.status == 'PENDING'}" class="btn btn-sm btn-danger" th:href="@{/lobby/invite/{id}/reject(id=${inv.inviteId})}">Rifiuta</a>
+                                        <span th:if="${inv.status != 'PENDING'}">-</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mini-title">Inviti inviati</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm lobby-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>A</th>
+                                    <th>Stato</th>
+                                </tr>
+                            </thead>
+                            <tbody id="outgoingInvitesBody">
+                                <tr th:if="${#lists.isEmpty(outgoingInvites)}">
+                                    <td colspan="2">Nessun invito inviato.</td>
+                                </tr>
+                                <tr th:each="inv : ${outgoingInvites}">
+                                    <td th:text="${inv.from}">user</td>
+                                    <td th:text="${inv.status}">PENDING</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3 link-list">
+                        <a th:href="@{/profile}">Profilo</a>
+                        <a th:href="@{/public-info}">Informazioni Pubbliche</a>
+                    </div>
+                </section>
+
+                <section class="panel" sec:authorize="hasRole('ADMIN')">
+                    <h2>Console Admin</h2>
+                    <p class="mb-2">Questa sezione è visibile solo agli amministratori.</p>
+                    <a th:href="@{/admin-only}" class="btn btn-danger">Apri Area Segreta Admin</a>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade modal-gaming" id="playerInfoModal" tabindex="-1" aria-labelledby="playerInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="playerInfoModalLabel">Informazioni Giocatore</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="player-line">Nome utente attivo: <strong sec:authentication="name">Utente</strong></p>
+                    <p class="player-line">Permessi correnti: <strong sec:authentication="principal.authorities">Ruoli</strong></p>
+                    <p class="mb-0 text-light">Questa sessione sta giocando nella Tris Arena.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const msgEl = document.getElementById('gameMessage');
+            const turnEl = document.getElementById('turnText');
+            const starterAlertEl = document.getElementById('starterAlert');
+            const boardWrap = document.getElementById('boardWrap');
+            const boardStage = boardWrap ? boardWrap.parentElement : null;
+            const activeUsersBody = document.getElementById('activeUsersBody');
+            const incomingInvitesBody = document.getElementById('incomingInvitesBody');
+            const outgoingInvitesBody = document.getElementById('outgoingInvitesBody');
+            let isNavigating = false;
+
+            if (boardWrap) {
+                boardWrap.addEventListener('pointerdown', (event) => {
+                    const link = event.target.closest('a');
+                    if (!link) {
+                        return;
+                    }
+
+                    const href = link.getAttribute('href') || '';
+                    if (!href.startsWith('/click/')) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    isNavigating = true;
+                    window.location.assign(link.href);
+                });
+            }
+
+            function ensureOverlay(message) {
+                if (!boardStage) {
+                    return;
+                }
+
+                let overlay = document.getElementById('boardOverlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'boardOverlay';
+                    overlay.className = 'board-overlay';
+                    overlay.innerHTML = '<div class="board-overlay-box"><p></p><a href="/game/reset" class="btn btn-outline-light btn-sm">Nuova partita stessi giocatori</a></div>';
+                    boardStage.appendChild(overlay);
+                }
+
+                const p = overlay.querySelector('p');
+                if (p) {
+                    p.textContent = message || 'Partita terminata.';
+                }
+            }
+
+            function removeOverlay() {
+                const overlay = document.getElementById('boardOverlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+            }
+
+            function renderBoard(state) {
+                if (!boardWrap || !Array.isArray(state.board)) {
+                    return;
+                }
+
+                const cells = boardWrap.querySelectorAll('.js-cell');
+                cells.forEach((cell, i) => {
+                    const value = state.board[i] || '';
+                    const idx = cell.getAttribute('data-idx');
+                    cell.innerHTML = '';
+
+                    if (value === '') {
+                        if (state.hasGame === true && state.status === 'IN_PROGRESS') {
+                            const a = document.createElement('a');
+                            a.href = '/click/' + idx;
+                            a.textContent = '.';
+                            cell.classList.add('cell-empty');
+                            cell.appendChild(a);
+                        } else {
+                            const span = document.createElement('span');
+                            span.className = 'mark-empty';
+                            cell.classList.add('cell-empty');
+                            cell.appendChild(span);
+                        }
+                    } else {
+                        const span = document.createElement('span');
+                        span.textContent = value;
+                        span.className = value === 'X' ? 'mark-x' : 'mark-o';
+                        cell.classList.remove('cell-empty');
+                        cell.appendChild(span);
+                    }
+                });
+            }
+
+            async function poll() {
+                if (isNavigating) {
+                    return;
+                }
+                try {
+                    const response = await fetch('/api/game/state', { cache: 'no-store' });
+                    if (!response.ok) {
+                        return;
+                    }
+                    const state = await response.json();
+                    if (msgEl) {
+                        msgEl.textContent = state.message || '';
+                    }
+                    if (turnEl) {
+                        turnEl.textContent = state.turnText || '';
+                    }
+                    if (starterAlertEl) {
+                        if (state.hasGame === true && state.starter) {
+                            starterAlertEl.style.display = 'block';
+                            const symbol = state.starterSymbol || '?';
+                            starterAlertEl.textContent = 'Inizia per primo: ' + state.starter + ' (simbolo ' + symbol + ')';
+                        } else {
+                            starterAlertEl.style.display = 'none';
+                        }
+                    }
+
+                    renderBoard(state);
+
+                    if (state.hasGame && state.status !== 'IN_PROGRESS') {
+                        ensureOverlay(state.message);
+                    } else {
+                        removeOverlay();
+                    }
+                } catch (e) {
+                    // keep silent to avoid UI noise during temporary network hiccups
+                }
+            }
+
+            function createTextCell(text) {
+                const td = document.createElement('td');
+                td.textContent = text;
+                return td;
+            }
+
+            function renderActiveUsers(users, currentGameId) {
+                if (!activeUsersBody) {
+                    return;
+                }
+
+                activeUsersBody.innerHTML = '';
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 3;
+                    td.textContent = 'Nessun altro utente attivo.';
+                    tr.appendChild(td);
+                    activeUsersBody.appendChild(tr);
+                    return;
+                }
+
+                users.forEach((u) => {
+                    const tr = document.createElement('tr');
+                    tr.appendChild(createTextCell(u.username || 'player'));
+
+                    const statusTd = document.createElement('td');
+                    const dot = document.createElement('span');
+                    dot.className = 'status-dot ' + (u.inGame ? 'status-busy' : 'status-free');
+                    statusTd.appendChild(dot);
+                    statusTd.appendChild(document.createTextNode(u.inGame ? 'In partita' : 'Libero'));
+                    tr.appendChild(statusTd);
+
+                    const actionTd = document.createElement('td');
+                    if (!u.inGame && !currentGameId) {
+                        const a = document.createElement('a');
+                        a.className = 'btn btn-sm btn-outline-info';
+                        a.href = '/lobby/invite/' + u.sessionId;
+                        a.textContent = 'Invita';
+                        actionTd.appendChild(a);
+                    } else {
+                        actionTd.textContent = '-';
+                    }
+                    tr.appendChild(actionTd);
+                    activeUsersBody.appendChild(tr);
+                });
+            }
+
+            function renderIncomingInvites(invites, currentGameId) {
+                if (!incomingInvitesBody) {
+                    return;
+                }
+
+                incomingInvitesBody.innerHTML = '';
+
+                if (!Array.isArray(invites) || invites.length === 0) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 3;
+                    td.textContent = 'Nessun invito.';
+                    tr.appendChild(td);
+                    incomingInvitesBody.appendChild(tr);
+                    return;
+                }
+
+                invites.forEach((inv) => {
+                    const tr = document.createElement('tr');
+                    tr.appendChild(createTextCell(inv.from || 'user'));
+                    tr.appendChild(createTextCell(inv.status || 'PENDING'));
+
+                    const actions = document.createElement('td');
+                    if (inv.status === 'PENDING') {
+                        if (!currentGameId) {
+                            const accept = document.createElement('a');
+                            accept.className = 'btn btn-sm btn-success me-1';
+                            accept.href = '/lobby/invite/' + inv.inviteId + '/accept';
+                            accept.textContent = 'Accetta';
+                            actions.appendChild(accept);
+                        }
+                        const reject = document.createElement('a');
+                        reject.className = 'btn btn-sm btn-danger';
+                        reject.href = '/lobby/invite/' + inv.inviteId + '/reject';
+                        reject.textContent = 'Rifiuta';
+                        actions.appendChild(reject);
+                    } else {
+                        actions.textContent = '-';
+                    }
+                    tr.appendChild(actions);
+                    incomingInvitesBody.appendChild(tr);
+                });
+            }
+
+            function renderOutgoingInvites(invites) {
+                if (!outgoingInvitesBody) {
+                    return;
+                }
+
+                outgoingInvitesBody.innerHTML = '';
+
+                if (!Array.isArray(invites) || invites.length === 0) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 2;
+                    td.textContent = 'Nessun invito inviato.';
+                    tr.appendChild(td);
+                    outgoingInvitesBody.appendChild(tr);
+                    return;
+                }
+
+                invites.forEach((inv) => {
+                    const tr = document.createElement('tr');
+                    tr.appendChild(createTextCell(inv.to || 'user'));
+                    tr.appendChild(createTextCell(inv.status || 'PENDING'));
+                    outgoingInvitesBody.appendChild(tr);
+                });
+            }
+
+            async function pollLobby() {
+                if (isNavigating) {
+                    return;
+                }
+                try {
+                    const response = await fetch('/api/lobby/state', { cache: 'no-store' });
+                    if (!response.ok) {
+                        return;
+                    }
+                    const state = await response.json();
+                    renderActiveUsers(state.activeUsers, state.currentGameId);
+                    renderIncomingInvites(state.incomingInvites, state.currentGameId);
+                    renderOutgoingInvites(state.outgoingInvites);
+                } catch (e) {
+                    // keep silent to avoid UI noise during temporary network hiccups
+                }
+            }
+
+            setInterval(poll, 200);
+            setInterval(pollLobby, 200);
+            poll();
+            pollLobby();
+        })();
+    </script>
+</body>
+</html>
