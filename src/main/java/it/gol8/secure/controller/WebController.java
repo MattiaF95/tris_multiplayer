@@ -1,6 +1,8 @@
 package it.gol8.secure.controller;
 
 import it.gol8.secure.service.MultiplayerTicTacToeService;
+import it.gol8.secure.service.TicTacToeService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class WebController {
 
     private final MultiplayerTicTacToeService multiplayerService;
+    private final TicTacToeService singleplayerService;
 
-    public WebController(MultiplayerTicTacToeService multiplayerService) {
+    public WebController(MultiplayerTicTacToeService multiplayerService, TicTacToeService singleplayerService) {
         this.multiplayerService = multiplayerService;
+        this.singleplayerService = singleplayerService;
     }
 
     @GetMapping("/")
@@ -29,7 +33,7 @@ public class WebController {
         return "index"; // index.html
     }
 
-    @GetMapping("/access_denied")
+    @GetMapping("/access-denied")
     public String mAccessDenied() {
         return "403";
     }
@@ -38,21 +42,40 @@ public class WebController {
     public String mLogin() {
         return "login";
     }
-    
+
     @GetMapping("/dashboard")
-    public String mDashboard(Model model, Principal principal, HttpSession session, HttpServletResponse response) {
-        multiplayerService.populateDashboard(model, principal.getName(), session, response);
+    public String mDashboard(Model model, Principal principal, HttpSession session, HttpServletResponse response,
+            HttpServletRequest request) {
+        String gameMode = readCookie(request, "game_mode");
+
+        if ("singleplayer".equals(gameMode)) {
+            // Single-player mode: use TicTacToeService
+            singleplayerService.populateDashboard(model, request, response);
+        } else {
+            // Multiplayer mode: use MultiplayerTicTacToeService
+            multiplayerService.populateDashboard(model, principal.getName(), session, response);
+        }
+
         return "dashboard";
     }
 
     @GetMapping("/click/{index}")
-    public String clickCell(@PathVariable int index, HttpSession session) {
-        multiplayerService.playMove(session, index);
+    public String clickCell(@PathVariable int index, HttpServletRequest request, HttpServletResponse response) {
+        String gameMode = readCookie(request, "game_mode");
+
+        if ("singleplayer".equals(gameMode)) {
+            singleplayerService.handleClick(index, request, response);
+        } else {
+            HttpSession session = request.getSession();
+            multiplayerService.playMove(session, index);
+        }
+
         return "redirect:/dashboard";
     }
 
     @GetMapping("/lobby/invite/{sessionId}")
-    public String sendInvite(@PathVariable("sessionId") String targetSessionId, Principal principal, HttpSession session) {
+    public String sendInvite(@PathVariable("sessionId") String targetSessionId, Principal principal,
+            HttpSession session) {
         multiplayerService.sendInvite(session, principal.getName(), targetSessionId);
         return "redirect:/dashboard";
     }
@@ -75,15 +98,36 @@ public class WebController {
         return "redirect:/dashboard";
     }
 
+    @GetMapping("/game/singleplayer")
+    public String startSingleplayer(HttpServletRequest request, HttpServletResponse response) {
+        writeCookie(response, "game_mode", "singleplayer");
+        singleplayerService.resetBoard(request, response);
+        return "redirect:/dashboard";
+    }
+
+    @GetMapping("/game/multiplayer")
+    public String startMultiplayer(HttpSession session, HttpServletResponse response) {
+        writeCookie(response, "game_mode", "");
+        multiplayerService.leaveGame(session);
+        return "redirect:/dashboard";
+    }
+
     @GetMapping("/game/leave")
-    public String leaveGame(HttpSession session) {
+    public String leaveGame(HttpSession session, HttpServletResponse response) {
+        writeCookie(response, "game_mode", "");
         multiplayerService.leaveGame(session);
         return "redirect:/dashboard";
     }
 
     @GetMapping("/api/game/state")
     @ResponseBody
-    public Map<String, Object> gameState(HttpSession session) {
+    public Map<String, Object> gameState(HttpServletRequest request, HttpSession session) {
+        String gameMode = readCookie(request, "game_mode");
+
+        if ("singleplayer".equals(gameMode)) {
+            return singleplayerGameState(request);
+        }
+
         return multiplayerService.gameState(session);
     }
 
@@ -119,5 +163,27 @@ public class WebController {
     public String mAdminOnly() {
         return "admin-only";
     }
-    
+
+    private String readCookie(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+            if (name.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+    private void writeCookie(HttpServletResponse response, String name, String value) {
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie(name, value);
+        cookie.setPath("/");
+        cookie.setMaxAge(value == null || value.isEmpty() ? 0 : 60 * 60 * 24);
+        response.addCookie(cookie);
+    }
+
+    private Map<String, Object> singleplayerGameState(HttpServletRequest request) {
+        return singleplayerService.gameStateAsMap(request);
+    }
 }

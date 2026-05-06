@@ -45,6 +45,18 @@ public class TicTacToeService {
         model.addAttribute("played", state.wins + state.losses + state.draws);
         model.addAttribute("gameStatus", state.status);
         model.addAttribute("resultMessage", state.message);
+
+        // Add empty multiplayer attributes for single-player mode
+        model.addAttribute("currentGameId", null);
+        model.addAttribute("activeUsers", new ArrayList<>());
+        model.addAttribute("incomingInvites", new ArrayList<>());
+        model.addAttribute("outgoingInvites", new ArrayList<>());
+        model.addAttribute("mySymbol", "X");
+        model.addAttribute("opponent", "Computer");
+        model.addAttribute("turnText", "Gioca contro il computer");
+        model.addAttribute("canPlay", state.status.equals(STATUS_PLAYING));
+        model.addAttribute("starter", null);
+        model.addAttribute("starterSymbol", null);
     }
 
     public void handleClick(int index, HttpServletRequest request, HttpServletResponse response) {
@@ -144,9 +156,9 @@ public class TicTacToeService {
 
     private boolean isWinner(char[] b, char p) {
         int[][] lines = {
-                {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
-                {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
-                {0, 4, 8}, {2, 4, 6}
+                { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 },
+                { 0, 3, 6 }, { 1, 4, 7 }, { 2, 5, 8 },
+                { 0, 4, 8 }, { 2, 4, 6 }
         };
 
         for (int[] line : lines) {
@@ -175,7 +187,7 @@ public class TicTacToeService {
         state.status = (statusCookie == null || statusCookie.isBlank()) ? STATUS_PLAYING : statusCookie;
         state.message = (messageCookie == null || messageCookie.isBlank())
                 ? "Inizia la partita: piazza una X su una casella libera."
-            : messageCookie;
+                : messageCookie;
 
         return state;
     }
@@ -227,12 +239,12 @@ public class TicTacToeService {
 
     private int[] parseStats(String raw) {
         if (raw == null || raw.isBlank()) {
-            return new int[] {0, 0, 0};
+            return new int[] { 0, 0, 0 };
         }
 
         String[] parts = raw.split(",");
         if (parts.length != 3) {
-            return new int[] {0, 0, 0};
+            return new int[] { 0, 0, 0 };
         }
 
         try {
@@ -242,7 +254,7 @@ public class TicTacToeService {
                     Integer.parseInt(parts[2])
             };
         } catch (NumberFormatException ex) {
-            return new int[] {0, 0, 0};
+            return new int[] { 0, 0, 0 };
         }
     }
 
@@ -258,6 +270,38 @@ public class TicTacToeService {
 
     private String decode(String text) {
         return URLDecoder.decode(text, StandardCharsets.UTF_8);
+    }
+
+    public java.util.Map<String, Object> gameStateAsMap(HttpServletRequest request) {
+        GameState state = loadState(request);
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+
+        java.util.List<String> boardForView = new java.util.ArrayList<>();
+        for (char value : state.board) {
+            boardForView.add(value == '-' ? "" : String.valueOf(value));
+        }
+
+        // Map internal status to API status for compatibility with frontend
+        String apiStatus = mapStatusToApiStatus(state.status);
+
+        map.put("board", boardForView);
+        map.put("message", state.message);
+        map.put("status", apiStatus);
+        map.put("wins", state.wins);
+        map.put("losses", state.losses);
+        map.put("draws", state.draws);
+        map.put("played", state.wins + state.losses + state.draws);
+        map.put("turnText", "Il tuo turno - gioca vs computer");
+        map.put("hasGame", true);
+
+        return map;
+    }
+
+    private String mapStatusToApiStatus(String status) {
+        if ("PLAYING".equals(status)) {
+            return "IN_PROGRESS";
+        }
+        return status;
     }
 
     private static class GameState {

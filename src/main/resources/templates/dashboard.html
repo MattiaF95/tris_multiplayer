@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-deep: #030612;
@@ -396,17 +398,26 @@
         }
     </style>
 </head>
+
 <body>
     <div class="dashboard-wrap">
         <header class="topbar d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
             <div>
                 <h1 class="brand">GOl8 Dashboard - Tris Arena</h1>
-                <div class="meta">Giocatore: <strong sec:authentication="name">Utente</strong> • Ruoli: <span sec:authentication="principal.authorities">Ruoli</span></div>
+                <div class="meta">Giocatore: <strong sec:authentication="name">Utente</strong> • Ruoli: <span
+                        sec:authentication="principal.authorities">Ruoli</span></div>
             </div>
             <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-player-info" data-bs-toggle="modal" data-bs-target="#playerInfoModal">
+                <button type="button" class="btn btn-player-info" data-bs-toggle="modal"
+                    data-bs-target="#playerInfoModal">
                     Info Giocatore
                 </button>
+                <a th:href="@{/game/singleplayer}" class="btn btn-outline-warning">
+                    🤖 Gioca vs Computer
+                </a>
+                <a th:href="@{/game/multiplayer}" class="btn btn-outline-info">
+                    👥 Modalità Multiplayer
+                </a>
                 <form th:action="@{/logout}" method="post" class="m-0">
                     <button class="btn btn-logout" type="submit">Logout</button>
                 </form>
@@ -419,34 +430,42 @@
                     <h2>Partita Tris Multiplayer</h2>
                     <div class="legend mb-1" id="gameMessage" th:text="${resultMessage}">Nessuna partita attiva.</div>
                     <div class="legend mb-2" id="turnText" th:text="${turnText}">In attesa partita</div>
-                    <div class="starter-alert" id="starterAlert" th:if="${currentGameId != null and starter != null and starter != ''}">
-                        Inizia per primo: <span th:text="${starter}">playerX</span> (simbolo <span th:text="${starterSymbol}">X</span>)
+                    <div class="starter-alert" id="starterAlert"
+                        th:if="${currentGameId != null and starter != null and starter != ''}">
+                        Inizia per primo: <span th:text="${starter}">playerX</span> (simbolo <span
+                            th:text="${starterSymbol}">X</span>)
                     </div>
                     <div class="legend mb-2" th:if="${currentGameId != null}">
-                        Sei: <strong th:text="${mySymbol}">X</strong> • Avversario: <strong th:text="${opponent}">-</strong>
+                        Sei: <strong th:text="${mySymbol}">X</strong> • Avversario: <strong
+                            th:text="${opponent}">-</strong>
                     </div>
 
                     <div class="board-stage">
                         <div class="board-wrap" id="boardWrap">
-                            <div class="cell js-cell" th:each="cell, cellStat : ${board}" th:attr="data-idx=${cellStat.index}">
-                                <a th:if="${cell == '' and currentGameId != null and gameStatus == 'IN_PROGRESS'}" th:href="@{/click/{idx}(idx=${cellStat.index})}">.</a>
-                                <span class="mark-empty" th:if="${cell == '' and (currentGameId == null or gameStatus != 'IN_PROGRESS')}"></span>
-                                <span th:if="${cell != ''}"
-                                      th:text="${cell}"
-                                      th:classappend="${cell == 'X'} ? ' mark-x' : ' mark-o'">X</span>
+                            <div class="cell js-cell" th:each="cell, cellStat : ${board}"
+                                th:attr="data-idx=${cellStat.index}">
+                                <a th:if="${cell == '' and currentGameId != null and gameStatus == 'IN_PROGRESS'}"
+                                    th:href="@{/click/{idx}(idx=${cellStat.index})}">.</a>
+                                <span class="mark-empty"
+                                    th:if="${cell == '' and (currentGameId == null or gameStatus != 'IN_PROGRESS')}"></span>
+                                <span th:if="${cell != ''}" th:text="${cell}"
+                                    th:classappend="${cell == 'X'} ? ' mark-x' : ' mark-o'">X</span>
                             </div>
                         </div>
 
-                        <div class="board-overlay" id="boardOverlay" th:if="${currentGameId != null and gameStatus != 'IN_PROGRESS'}">
+                        <div class="board-overlay" id="boardOverlay"
+                            th:if="${currentGameId != null and gameStatus != 'IN_PROGRESS'}">
                             <div class="board-overlay-box">
                                 <p th:text="${resultMessage}">Partita terminata.</p>
-                                <a th:href="@{/game/reset}" class="btn btn-outline-light btn-sm">Nuova partita stessi giocatori</a>
+                                <a th:href="@{/game/reset}" class="btn btn-outline-light btn-sm">Nuova partita stessi
+                                    giocatori</a>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-center mt-3" th:if="${currentGameId != null}">
-                        <a th:href="@{/game/leave}" class="btn btn-outline-light btn-sm">Esci dalla partita condivisa</a>
+                        <a th:href="@{/game/leave}" class="btn btn-outline-light btn-sm">Esci dalla partita
+                            condivisa</a>
                     </div>
                 </section>
             </div>
@@ -496,11 +515,14 @@
                                 <tr th:each="u : ${activeUsers}">
                                     <td th:text="${u.username}">player</td>
                                     <td>
-                                        <span class="status-dot" th:classappend="${u.inGame} ? ' status-busy' : ' status-free'"></span>
+                                        <span class="status-dot"
+                                            th:classappend="${u.inGame} ? ' status-busy' : ' status-free'"></span>
                                         <span th:text="${u.inGame} ? 'In partita' : 'Libero'">Libero</span>
                                     </td>
                                     <td>
-                                        <a th:if="${!u.inGame and currentGameId == null}" class="btn btn-sm btn-outline-info" th:href="@{/lobby/invite/{sid}(sid=${u.sessionId})}">Invita</a>
+                                        <a th:if="${!u.inGame and currentGameId == null}"
+                                            class="btn btn-sm btn-outline-info"
+                                            th:href="@{/lobby/invite/{sid}(sid=${u.sessionId})}">Invita</a>
                                         <span th:if="${u.inGame or currentGameId != null}">-</span>
                                     </td>
                                 </tr>
@@ -526,8 +548,11 @@
                                     <td th:text="${inv.from}">user</td>
                                     <td th:text="${inv.status}">PENDING</td>
                                     <td>
-                                        <a th:if="${inv.status == 'PENDING' and currentGameId == null}" class="btn btn-sm btn-success" th:href="@{/lobby/invite/{id}/accept(id=${inv.inviteId})}">Accetta</a>
-                                        <a th:if="${inv.status == 'PENDING'}" class="btn btn-sm btn-danger" th:href="@{/lobby/invite/{id}/reject(id=${inv.inviteId})}">Rifiuta</a>
+                                        <a th:if="${inv.status == 'PENDING' and currentGameId == null}"
+                                            class="btn btn-sm btn-success"
+                                            th:href="@{/lobby/invite/{id}/accept(id=${inv.inviteId})}">Accetta</a>
+                                        <a th:if="${inv.status == 'PENDING'}" class="btn btn-sm btn-danger"
+                                            th:href="@{/lobby/invite/{id}/reject(id=${inv.inviteId})}">Rifiuta</a>
                                         <span th:if="${inv.status != 'PENDING'}">-</span>
                                     </td>
                                 </tr>
@@ -571,16 +596,19 @@
         </div>
     </div>
 
-    <div class="modal fade modal-gaming" id="playerInfoModal" tabindex="-1" aria-labelledby="playerInfoModalLabel" aria-hidden="true">
+    <div class="modal fade modal-gaming" id="playerInfoModal" tabindex="-1" aria-labelledby="playerInfoModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="playerInfoModalLabel">Informazioni Giocatore</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p class="player-line">Nome utente attivo: <strong sec:authentication="name">Utente</strong></p>
-                    <p class="player-line">Permessi correnti: <strong sec:authentication="principal.authorities">Ruoli</strong></p>
+                    <p class="player-line">Permessi correnti: <strong
+                            sec:authentication="principal.authorities">Ruoli</strong></p>
                     <p class="mb-0 text-light">Questa sessione sta giocando nella Tris Arena.</p>
                 </div>
                 <div class="modal-footer">
@@ -602,6 +630,7 @@
             const incomingInvitesBody = document.getElementById('incomingInvitesBody');
             const outgoingInvitesBody = document.getElementById('outgoingInvitesBody');
             let isNavigating = false;
+            let overlayShown = false;
 
             if (boardWrap) {
                 boardWrap.addEventListener('pointerdown', (event) => {
@@ -631,7 +660,13 @@
                     overlay = document.createElement('div');
                     overlay.id = 'boardOverlay';
                     overlay.className = 'board-overlay';
-                    overlay.innerHTML = '<div class="board-overlay-box"><p></p><a href="/game/reset" class="btn btn-outline-light btn-sm">Nuova partita stessi giocatori</a></div>';
+
+                    // Determine button text and link based on game mode
+                    const gameMode = getCookie('game_mode');
+                    const btnHref = (gameMode === 'singleplayer') ? '/game/singleplayer' : '/game/reset';
+                    const btnText = (gameMode === 'singleplayer') ? 'Nuova partita vs Computer' : 'Nuova partita stessi giocatori';
+
+                    overlay.innerHTML = `<div class="board-overlay-box"><p></p><a href="${btnHref}" class="btn btn-outline-light btn-sm">${btnText}</a></div>`;
                     boardStage.appendChild(overlay);
                 }
 
@@ -710,9 +745,11 @@
 
                     renderBoard(state);
 
-                    if (state.hasGame && state.status !== 'IN_PROGRESS') {
+                    if (state.hasGame && state.status !== 'IN_PROGRESS' && !overlayShown) {
                         ensureOverlay(state.message);
-                    } else {
+                        overlayShown = true;
+                    } else if (state.status === 'IN_PROGRESS') {
+                        overlayShown = false;
                         removeOverlay();
                     }
                 } catch (e) {
@@ -857,10 +894,29 @@
             }
 
             setInterval(poll, 200);
-            setInterval(pollLobby, 200);
+
+            // Only enable lobby polling in multiplayer mode
+            const gameMode = getCookie('game_mode');
+            if (!gameMode || gameMode !== 'singleplayer') {
+                setInterval(pollLobby, 200);
+            }
+
             poll();
-            pollLobby();
+            if (!gameMode || gameMode !== 'singleplayer') {
+                pollLobby();
+            }
+
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i].trim();
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length);
+                }
+                return null;
+            }
         })();
     </script>
 </body>
+
 </html>
