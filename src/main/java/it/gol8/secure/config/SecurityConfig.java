@@ -16,72 +16,123 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests((requests) -> requests
-                        // 1. Risorse pubbliche
-                        .requestMatchers("/", "/login", "/public-info", "/css/**", "/js/**", "/images/**").permitAll()
-                        // // 2. Protezione specifica per ADMIN
-                        // .requestMatchers("/admin-only", "/admin-only/**").hasRole("ADMIN")
-                        // 3. Tutto il resto richiede login (USER o ADMIN)
-                        .anyRequest().authenticated())
-                .formLogin((form) -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .permitAll())
-                .logout((logout) -> logout
-                        .logoutSuccessUrl("/login?logout")
-                        .permitAll())
-                .exceptionHandling((exception) -> exception
-                        .accessDeniedPage("/access-denied") // Mancava la chiusura della lambda qui
-                ); // E qui la parentesi del metodo http
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .authorizeHttpRequests((requests) -> requests
+                                                // 1. Risorse pubbliche
+                                                .requestMatchers("/", "/login", "/public-info", "/css/**", "/js/**",
+                                                                "/images/**")
+                                                .permitAll()
+                                                // // 2. Protezione specifica per ADMIN
+                                                // .requestMatchers("/admin-only", "/admin-only/**").hasRole("ADMIN")
+                                                // 3. Tutto il resto richiede login (USER o ADMIN)
+                                                .anyRequest().authenticated())
+                                .formLogin((form) -> form
+                                                .loginPage("/login")
+                                                .loginProcessingUrl("/login")
+                                                .defaultSuccessUrl("/dashboard", true)
+                                                .permitAll())
+                                .logout((logout) -> logout
+                                                .logoutSuccessUrl("/login?logout")
+                                                .permitAll())
+                                .exceptionHandling((exception) -> exception
+                                                .accessDeniedPage("/access-denied") // Mancava la chiusura della lambda
+                                                                                    // qui
+                                ); // E qui la parentesi del metodo http
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    // private final UserService userService;
+        // private final UserService userService;
 
-    // // Costruttore per l'iniezione
-    // public SecurityConfig(UserService userService) {
-    //     this.userService = userService;
-    // }
+        // // Costruttore per l'iniezione
+        // public SecurityConfig(UserService userService) {
+        // this.userService = userService;
+        // }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username("franco")
-                .password(passwordEncoder().encode("guile2026")) // Password cifrata
-                .roles("USER")
-                .build();
+        @Bean
+        public UserDetailsService userDetailsService() {
+                UserDetails franco = User.builder()
+                                .username("franco")
+                                .password(passwordEncoder().encode("guile2026")) // Password cifrata
+                                .roles("USER")
+                                .build();
 
-        UserDetails mattia = User.builder()
-                .username("mattia")
-                .password(passwordEncoder().encode("mattia123"))
-                .roles("USER")
-                .build();
+                UserDetails mattia = User.builder()
+                                .username("mattia")
+                                .password(passwordEncoder().encode("mattia123"))
+                                .roles("USER")
+                                .build();
 
-        UserDetails patrizio = User.builder()
-                .username("patrizio")
-                .password(passwordEncoder().encode("pat123"))
-                .roles("USER")
-                .build();
+                UserDetails patrizio = User.builder()
+                                .username("patrizio")
+                                .password(passwordEncoder().encode("patrizio123"))
+                                .roles("USER")
+                                .build();
 
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin123"))
-                .roles("ADMIN")
-                .build();
+                UserDetails diletta = User.builder()
+                                .username("diletta")
+                                .password(passwordEncoder().encode("diletta123"))
+                                .roles("USER")
+                                .build();
 
-        return new InMemoryUserDetailsManager(user, mattia, patrizio, admin);
-    }
+                UserDetails lorenzo = User.builder()
+                                .username("lorenzo")
+                                .password(passwordEncoder().encode("lorenzo123"))
+                                .roles("USER")
+                                .build();
 
-    // Bean per la cifratura delle password
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+                UserDetails antonio = User.builder()
+                                .username("antonio")
+                                .password(passwordEncoder().encode("antonio123"))
+                                .roles("USER")
+                                .build();
 
+                UserDetails alessandro = User.builder()
+                                .username("alessandro")
+                                .password(passwordEncoder().encode("alessandro123"))
+                                .roles("USER")
+                                .build();
+
+                UserDetails matteo = User.builder()
+                                .username("matteo")
+                                .password(passwordEncoder().encode("matteo123"))
+                                .roles("USER")
+                                .build();
+
+                UserDetails francesco = User.builder()
+                                .username("francesco")
+                                .password(passwordEncoder().encode("francesco123"))
+                                .roles("USER")
+                                .build();
+
+                UserDetails valerio = User.builder()
+                                .username("valerio")
+                                .password(passwordEncoder().encode("valerio123"))
+                                .roles("USER")
+                                .build();
+
+                UserDetails christian = User.builder()
+                                .username("christian")
+                                .password(passwordEncoder().encode("christian123"))
+                                .roles("USER")
+                                .build();
+
+                UserDetails admin = User.builder()
+                                .username("admin")
+                                .password(passwordEncoder().encode("admin123"))
+                                .roles("ADMIN")
+                                .build();
+
+                return new InMemoryUserDetailsManager(franco, mattia, patrizio, diletta, lorenzo, valerio, christian,
+                                matteo, francesco, antonio, alessandro, admin);
+        }
+
+        // Bean per la cifratura delle password
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
 }
