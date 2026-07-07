@@ -897,12 +897,12 @@
 
             // Only enable lobby polling in multiplayer mode
             const gameMode = getCookie('game_mode');
-            if (!gameMode || gameMode !== 'singleplayer') {
+            if (gameMode === 'multiplayer') {
                 setInterval(pollLobby, 200);
             }
 
             poll();
-            if (!gameMode || gameMode !== 'singleplayer') {
+            if (gameMode === 'multiplayer') {
                 pollLobby();
             }
 

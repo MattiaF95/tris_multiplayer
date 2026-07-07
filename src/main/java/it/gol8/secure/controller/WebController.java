@@ -48,12 +48,12 @@ public class WebController {
             HttpServletRequest request) {
         String gameMode = readCookie(request, "game_mode");
 
-        if ("singleplayer".equals(gameMode)) {
-            // Single-player mode: use TicTacToeService
-            singleplayerService.populateDashboard(model, request, response);
-        } else {
+        if ("multiplayer".equals(gameMode)) {
             // Multiplayer mode: use MultiplayerTicTacToeService
             multiplayerService.populateDashboard(model, principal.getName(), session, response);
+        } else {
+            // Single-player mode: use TicTacToeService
+            singleplayerService.populateDashboard(model, request, response);
         }
 
         return "dashboard";
@@ -63,11 +63,11 @@ public class WebController {
     public String clickCell(@PathVariable int index, HttpServletRequest request, HttpServletResponse response) {
         String gameMode = readCookie(request, "game_mode");
 
-        if ("singleplayer".equals(gameMode)) {
-            singleplayerService.handleClick(index, request, response);
-        } else {
+        if ("multiplayer".equals(gameMode)) {
             HttpSession session = request.getSession();
             multiplayerService.playMove(session, index);
+        } else {
+            singleplayerService.handleClick(index, request, response);
         }
 
         return "redirect:/dashboard";
@@ -107,7 +107,7 @@ public class WebController {
 
     @GetMapping("/game/multiplayer")
     public String startMultiplayer(HttpSession session, HttpServletResponse response) {
-        writeCookie(response, "game_mode", "");
+        writeCookie(response, "game_mode", "multiplayer");
         multiplayerService.leaveGame(session);
         return "redirect:/dashboard";
     }
@@ -124,11 +124,11 @@ public class WebController {
     public Map<String, Object> gameState(HttpServletRequest request, HttpSession session) {
         String gameMode = readCookie(request, "game_mode");
 
-        if ("singleplayer".equals(gameMode)) {
-            return singleplayerGameState(request);
+        if ("multiplayer".equals(gameMode)) {
+            return multiplayerService.gameState(session);
         }
 
-        return multiplayerService.gameState(session);
+        return singleplayerGameState(request);
     }
 
     @GetMapping("/api/game/{gameId}/state")
