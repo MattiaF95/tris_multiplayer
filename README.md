@@ -6,6 +6,8 @@
 
 L'architettura è costruita con **Spring Boot** e utilizza un sistema di **sessioni HTTP** per gestire lo stato del gioco in tempo reale tra i giocatori connessi.
 
+Progetto deployato su render: https://tris-multiplayer-5wj1.onrender.com/
+
 ---
 
 ## 🏗️ Architettura e Logica di Business
