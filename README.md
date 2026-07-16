@@ -464,5 +464,6 @@ Entrambi vedono:
 
 ---
 
-**Autore**: MattiaF95
-**Data Creazione**: 2026  
+## Autore
+
+[MattiaF95](https://github.com/MattiaF95)
